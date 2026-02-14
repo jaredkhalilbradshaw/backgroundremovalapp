@@ -104,59 +104,64 @@ const handleDownload = () => {
         
         {/* Images Preview Section */}
         <div className="grid grid-cols-2 gap-4 mt-4 mb-4">
-          {file && (
-            <>
-              <div className="relative">
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt={file.name}
-                  className="object-cover w-full h-full rounded-lg border border-gray-800"
-                />
+  {file && (
+    <>
+      {/* Column 1: Input Image */}
+      <div className="relative">
+        <img
+          src={URL.createObjectURL(file)}
+          alt={file.name}
+          className="object-cover w-full h-full rounded-lg border border-gray-800"
+        />
 
-                <button
-                  className="absolute top-0 right-0 p-2 text-black bg-yellow-500"
-                  onClick={() => handleDelete()}
-                >
-                  <FaTrashAlt className="w-4 h-4 hover:scale-125 duration-300" />
-                </button>
+        <button
+          className="absolute top-0 right-0 p-2 text-black bg-yellow-500 rounded-bl-lg hover:bg-yellow-600 transition-colors"
+          onClick={() => handleDelete()}
+        >
+          <FaTrashAlt className="w-4 h-4 hover:scale-125 duration-300" />
+        </button>
 
-
-                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/50 text-white text-xs p-2 rounded-b-lg truncate">
-                  {file.name} ({fileSize(file.size)})
-                </div>
-              </div>
-              <div className="flex items-center justify-center border-2 border-gray-800 rounded-lg bg-gray-900 text-gray-500">
-                Output image here
-              </div>
-
-              <div className="flex items-center justify-center relative">
-
-                {loading && (
-                  <ThreeDots
-                    height="80"
-                    width="80"
-                    radius="9"
-                    color="#4fa94d"
-                    ariaLabel="three-dots-loading"
-                    visible={true}
-                  />
-                )}
-
-                {outputImage && (
-                  <><img
-                      src={outputImage}
-                      alt="Output Image"
-                      className="object-cover w-full h-full rounded-lg border border-gray-800" /><button
-                        className="absolute top-0 right-0 p-2 text-black bg-green-500"
-                        onClick={() => handleDownload()}
-                      >
-                        <FaDownload className="w-4 h-4 hover:scale-125 duration-300" />
-                      </button></>
-                )}
-              </div>
-            </>
-          )}
+        <div className="absolute bottom-0 left-0 right-0 bg-gray-900/50 text-white text-xs p-2 rounded-b-lg truncate">
+          {file.name} ({fileSize(file.size)})
         </div>
+      </div>
+
+      {/* Column 2: Output Image or Placeholder */}
+      <div className="flex items-center justify-center border-2 border-gray-800 rounded-lg bg-gray-900 text-gray-500 relative">
+        {loading && (
+          <ThreeDots
+            height="80"
+            width="80"
+            radius="9"
+            color="#4fa94d"
+            ariaLabel="three-dots-loading"
+            visible={true}
+          />
+        )}
+
+        {!loading && !outputImage && (
+          <p>Output image here</p>
+        )}
+
+        {!loading && outputImage && (
+          <>
+            <img
+              src={outputImage}
+              alt="Output Image"
+              className="object-cover w-full h-full rounded-lg"
+            />
+            <button
+              className="absolute top-2 right-2 p-2 text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors shadow-lg"
+              onClick={handleDownload}
+            >
+              <FaDownload className="w-4 h-4 hover:scale-125 duration-300" />
+            </button>
+          </>
+        )}
+      </div>
+    </>
+  )}
+</div>
 
         {/* Dropzone Area */}
         <div className="w-full text-center border-4 border-gray-700 border-dashed rounded-md cursor-pointer mb-2 text-gray-400 hover:border-blue-500 transition-colors">
