@@ -2,13 +2,19 @@
 import { useState } from "react";
 import Dropzone, { FileRejection } from "react-dropzone";
 
-import { FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt, FaDownload } from "react-icons/fa";
+import { ThreeDots } from "react-loader-spinner";
+
+import { saveAs } from "file-saver";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>();
   const [error, setError] = useState("");
 
   const [outputImage, setOutputImage] = useState<string | null>(null);
+  const [base64image, setBase64Image] = useState<string | null>(null);
+
+  const [loading, setLoading] = useState(false);
 
   const acceptedFileTypes = {
     "image/jpeg": [".jpeg", ".jpg"],
@@ -31,9 +37,27 @@ export default function Home() {
   };
 
   const handleSubmit = async () => {
-    // This processes the input image and gets the output image with the background removed
+    setLoading(true);
 
-    setOutputImage("https://via.placeholder.com/400x300?text=Output+Image");
+    const response = await fetch("/api/replicate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ image: base64image }),
+    });
+
+    let result = await response.json();
+    console.log(response);
+
+    if (result.error) {
+      setError(result.error);
+      setLoading(false);
+      return;
+    }
+
+    setOutputImage(result.output);
+    setLoading(false);
   };
 
   const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -44,10 +68,24 @@ export default function Home() {
       return;
   };
 
+  handleDelete();
+
   console.log(acceptedFiles);
   setError("");
   setFile(acceptedFiles[0]);
-}
+
+  // Convert the accepted file to a base64 string
+  const reader = new FileReader();
+  reader.readAsDataURL(acceptedFiles[0]);
+  reader.onload = () => {
+    const binaryStr = reader.result as string;
+    setBase64Image(binaryStr);
+  };
+};
+
+const handleDownload = () => {
+  saveAs(outputImage as string, "output.png");
+};
 
   return (
   /* This wrapper makes the background black and the full height of the screen */
@@ -90,6 +128,32 @@ export default function Home() {
               <div className="flex items-center justify-center border-2 border-gray-800 rounded-lg bg-gray-900 text-gray-500">
                 Output image here
               </div>
+
+              <div className="flex items-center justify-center relative">
+
+                {loading && (
+                  <ThreeDots
+                    height="80"
+                    width="80"
+                    radius="9"
+                    color="#4fa94d"
+                    ariaLabel="three-dots-loading"
+                    visible={true}
+                  />
+                )}
+
+                {outputImage && (
+                  <><img
+                      src={outputImage}
+                      alt="Output Image"
+                      className="object-cover w-full h-full rounded-lg border border-gray-800" /><button
+                        className="absolute top-0 right-0 p-2 text-black bg-green-500"
+                        onClick={() => handleDownload()}
+                      >
+                        <FaDownload className="w-4 h-4 hover:scale-125 duration-300" />
+                      </button></>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -122,7 +186,11 @@ export default function Home() {
           <div className="flex items-center justify-center mt-4">
             <button 
             onClick={handleSubmit}
-            className="text-white text-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:bg-gradient-to-l rounded-lg px-6 py-2 text-center font-medium">
+            disabled={loading}
+            className={`text-white text-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:bg-gradient-to-l rounded-lg px-6 py-2 text-center font-medium ${
+              loading && "cursor-progress"
+            }`}
+            >
               Remove background
             </button>
           </div>
